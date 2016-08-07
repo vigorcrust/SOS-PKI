@@ -8,4 +8,4 @@ docker	run \
 	-v "$PWD"/bundle:/usr/local/bundle \
 	-w /usr/src/app \
 	sos-pki-dev \
-	ruby server.rb
+	rerun 'ruby server.rb'

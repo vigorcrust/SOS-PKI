@@ -2,3 +2,6 @@ source 'https://rubygems.org'
 
 gem 'sinatra'
 gem 'thin'
+
+# for development of sos-pki, remove for delivery
+gem 'rerun'

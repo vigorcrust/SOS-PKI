@@ -8,3 +8,4 @@ docker	run \
 	-w /usr/src/app \
 	sos-pki-dev \
 	ruby admin.rb --clean-all
+tree app/

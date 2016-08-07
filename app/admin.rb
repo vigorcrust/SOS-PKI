@@ -35,6 +35,12 @@ end
 def create_rootca_cert(passin)
   system("openssl ca -selfsign -batch -config config/root-ca.conf -in ca/root-ca.csr -out ca/root-ca.crt -extensions root_ca_ext -passin pass:#{passin}")
 end
+def create_signing_key_and_csr(passout)
+  system("openssl req -new -config config/signing-ca.conf -out ca/signing-ca.csr -keyout ca/signing-ca/private/signing-ca.key -passout pass:#{passout}")
+end
+def create_signingca_cert
+  system("openssl ca -batch -config config/root-ca.conf -in ca/signing-ca.csr -out ca/signing-ca.crt -extensions signing_ca_ext")
+end
 
 # ---- Helpers ----
 def input(reason = "")
@@ -42,11 +48,11 @@ def input(reason = "")
   3.times do
     pass_initial = ask("Enter #{reason}password: ")  { |q| q.echo = "*" }
     pass_verify  = ask("Verify #{reason}password: ") { |q| q.echo = "*" }
-    if pass_initial == pass_verify
+    if pass_initial == pass_verify && pass_initial.length > 3
       pass = pass_verify
       return pass
     else
-      puts "Password not equal. Retry."
+      puts "Password not equal or to short. Retry."
     end
   end
   puts "No valid passwords given."
@@ -83,6 +89,9 @@ EOF
       create_rootca_cert(root_ca_private_pass)
     when '--create-signing-ca'
       init_structure('signing-ca')
+      signing_ca_private_pass = input('Signing-CA ')
+      create_signing_key_and_csr(signing_ca_private_pass)
+      create_signingca_cert
     when '--create-cert'
     when '--clean-all'
       init_structure('clean')

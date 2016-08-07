@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'getoptlong'
+require 'highline/import'
 
 def init_structure(typeof_structure)
   case typeof_structure
@@ -28,8 +29,28 @@ def init_structure(typeof_structure)
 end
 
 
-def create_rootca_key_and_csr
-  system('openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key')
+def create_rootca_key_and_csr(passout)
+  system("openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key -passout pass:#{passout}")
+end
+def create_rootca_cert(passin)
+  system("openssl ca -selfsign -batch -config config/root-ca.conf -in ca/root-ca.csr -out ca/root-ca.crt -extensions root_ca_ext -passin pass:#{passin}")
+end
+
+# ---- Helpers ----
+def input(reason = "")
+  pass = ""
+  3.times do
+    pass_initial = ask("Enter #{reason}password: ")  { |q| q.echo = "*" }
+    pass_verify  = ask("Verify #{reason}password: ") { |q| q.echo = "*" }
+    if pass_initial == pass_verify
+      pass = pass_verify
+      return pass
+    else
+      puts "Password not equal. Retry."
+    end
+  end
+  puts "No valid passwords given."
+  return
 end
 
 # ---- Commandline Parser ----
@@ -57,7 +78,9 @@ Help::SOS-PKI
 EOF
     when '--create-root-ca'
       init_structure('root-ca')
-      create_rootca_key_and_csr
+      root_ca_private_pass = input('Root-CA ')
+      create_rootca_key_and_csr(root_ca_private_pass)
+      create_rootca_cert(root_ca_private_pass)
     when '--create-signing-ca'
       init_structure('signing-ca')
     when '--create-cert'

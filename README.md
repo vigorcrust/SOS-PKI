@@ -21,3 +21,11 @@ Purpose of this tool is to create a simple to use PKI for development and testin
 
 ## Reference
 [OpenSSL PKI Tutorial](https://pki-tutorial.readthedocs.io/en/latest/)
+
+## Development
+First run the `build_dev_base_docker.sh` script which builds the basic docker image which is needed to develop this application.
+Initially and every time you change the Gemfile you need to run the `bundle_install_local.sh` script.
+To clean all created directories and delete all created files run `clean_all.sh`
+Following scripts should be self explanatory:
+- `create_root_ca.sh`
+- `run_server.sh`

@@ -27,6 +27,12 @@ def init_structure(typeof_structure)
   FileUtils.mkdir_p 'certs'
 end
 
+
+def create_rootca_key_and_csr
+  system('openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key')
+end
+
+# ---- Commandline Parser ----
 opts = GetoptLong.new( 
 	[ '--help', '-h', GetoptLong::NO_ARGUMENT ],
 	[ '--create-root-ca', GetoptLong::NO_ARGUMENT],
@@ -51,6 +57,7 @@ Help::SOS-PKI
 EOF
     when '--create-root-ca'
       init_structure('root-ca')
+      create_rootca_key_and_csr
     when '--create-signing-ca'
       init_structure('signing-ca')
     when '--create-cert'

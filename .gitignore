@@ -53,3 +53,6 @@ build-iPhoneSimulator/
 app/Gemfile.lock
 bundle/*
 !bundle/.gitignore
+app/ca
+app/crl
+app/certs

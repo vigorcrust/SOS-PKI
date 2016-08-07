@@ -41,6 +41,12 @@ end
 def create_signingca_cert
   system("openssl ca -batch -config config/root-ca.conf -in ca/signing-ca.csr -out ca/signing-ca.crt -extensions signing_ca_ext")
 end
+def create_server_key_and_csr(san = 'DNS:simple.org', name = 'simple')
+  system("SAN=#{san} openssl req -new -config config/server.conf -out certs/#{name}.csr -keyout certs/#{name}.key")
+end
+def create_server_cert(name = 'simple')
+  system("openssl ca -batch -config config/signing-ca.conf -in certs/#{name}.csr -out certs/#{name}.crt -extensions server_ext")
+end
 
 # ---- Helpers ----
 def input(reason = "")
@@ -64,7 +70,7 @@ opts = GetoptLong.new(
 	[ '--help', '-h', GetoptLong::NO_ARGUMENT ],
 	[ '--create-root-ca', GetoptLong::NO_ARGUMENT],
 	[ '--create-signing-ca', GetoptLong::NO_ARGUMENT],
-	[ '--create-server-cert', GetoptLong::NO_ARGUMENT],
+	[ '--create-cert', GetoptLong::NO_ARGUMENT],
 	[ '--clean-all', GetoptLong::NO_ARGUMENT]
 )
 
@@ -93,6 +99,8 @@ EOF
       create_signing_key_and_csr(signing_ca_private_pass)
       create_signingca_cert
     when '--create-cert'
+      create_server_key_and_csr
+      create_server_cert
     when '--clean-all'
       init_structure('clean')
   end

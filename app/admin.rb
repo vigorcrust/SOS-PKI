@@ -2,10 +2,11 @@ require 'fileutils'
 require 'getoptlong'
 
 def init_structure(typeof_structure)
-  FileUtils.mkdir_p 'crl'
-  FileUtils.mkdir_p 'certs'
-
   case typeof_structure
+    when 'clean'
+      FileUtils.rm_rf('./ca')
+      FileUtils.rm_rf('./crl')
+      FileUtils.rm_rf('./certs')
     when 'root-ca'
       FileUtils.mkdir_p './ca/root-ca/private'
       FileUtils.mkdir_p './ca/root-ca/db'
@@ -21,13 +22,17 @@ def init_structure(typeof_structure)
       File.open('./ca/signing-ca/db/signing-ca.crt.srl', 'w') {|f| f.write("01")}
       File.open('./ca/signing-ca/db/signing-ca.crl.srl', 'w') {|f| f.write("01")}
   end
+
+  FileUtils.mkdir_p 'crl'
+  FileUtils.mkdir_p 'certs'
 end
 
 opts = GetoptLong.new( 
 	[ '--help', '-h', GetoptLong::NO_ARGUMENT ],
 	[ '--create-root-ca', GetoptLong::NO_ARGUMENT],
 	[ '--create-signing-ca', GetoptLong::NO_ARGUMENT],
-	[ '--create-server-cert', GetoptLong::NO_ARGUMENT]
+	[ '--create-server-cert', GetoptLong::NO_ARGUMENT],
+	[ '--clean-all', GetoptLong::NO_ARGUMENT]
 )
 
 opts.each do |opt, arg| 
@@ -49,5 +54,7 @@ EOF
     when '--create-signing-ca'
       init_structure('signing-ca')
     when '--create-cert'
+    when '--clean-all'
+      init_structure('clean')
   end
 end

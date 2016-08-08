@@ -30,7 +30,8 @@ Initially and every time you change the Gemfile you need to run the `bundle_inst
 To clean all created directories and delete all created files run `clean_all.sh`
 
 The 'admin.sh' script takes the argument provided and executes the `admin.rb` inside the docker container with these parameter:
-- `./admin.sh --create-root-ca`
+- `./admin.sh create-root-ca`
+- `./admin.sh create-cert --name "NameOfCert" --san "domain.com,second.domain.com" --password "password"`
 
 Following scripts should be self explanatory:
 - `create_root_ca.sh`

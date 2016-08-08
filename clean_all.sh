@@ -7,5 +7,5 @@ docker	run \
 	-v "$PWD"/bundle:/usr/local/bundle \
 	-w /usr/src/app \
 	sos-pki-dev \
-	ruby admin.rb --clean-all
+	ruby admin.rb clean-all
 tree app/

@@ -1,6 +1,6 @@
 require 'fileutils'
-require 'getoptlong'
 require 'highline/import'
+require 'optparse'
 
 def init_structure(typeof_structure)
   case typeof_structure
@@ -28,7 +28,6 @@ def init_structure(typeof_structure)
   FileUtils.mkdir_p 'certs'
 end
 
-
 def create_rootca_key_and_csr(passout)
   system("openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key -passout pass:#{passout}")
 end
@@ -41,11 +40,19 @@ end
 def create_signingca_cert
   system("openssl ca -batch -config config/root-ca.conf -in ca/signing-ca.csr -out ca/signing-ca.crt -extensions signing_ca_ext")
 end
-def create_server_key_and_csr(san = 'DNS:simple.org', name = 'simple')
-  system("SAN=#{san} openssl req -new -config config/server.conf -out certs/#{name}.csr -keyout certs/#{name}.key")
+def create_server_key_and_csr(san = 'simple.org', name = 'simple', password = '')
+  san_domains = san.split(',')
+  san_string = ""
+  for i in 1..san_domains.length
+    san_string += "SAN#{i}=#{san_domains[i-1]} "
+  end
+  for i in san_domains.length+1..5
+    san_string += "SAN#{i}=\"\" "
+  end
+  system("#{san_string} COMMON_NAME=#{name} openssl req -new -config config/server.conf -out certs/#{name}.csr -keyout certs/#{name}.key")
 end
-def create_server_cert(name = 'simple')
-  system("openssl ca -batch -config config/signing-ca.conf -in certs/#{name}.csr -out certs/#{name}.crt -extensions server_ext")
+def create_server_cert(name = 'simple', password = '')
+  system("openssl ca -batch -config config/signing-ca.conf -in certs/#{name}.csr -out certs/#{name}.crt -extensions server_ext -passin pass:#{password}")
 end
 
 # ---- Helpers ----
@@ -66,42 +73,66 @@ def input(reason = "")
 end
 
 # ---- Commandline Parser ----
-opts = GetoptLong.new( 
-	[ '--help', '-h', GetoptLong::NO_ARGUMENT ],
-	[ '--create-root-ca', GetoptLong::NO_ARGUMENT],
-	[ '--create-signing-ca', GetoptLong::NO_ARGUMENT],
-	[ '--create-cert', GetoptLong::NO_ARGUMENT],
-	[ '--clean-all', GetoptLong::NO_ARGUMENT]
-)
+options = {}
 
-opts.each do |opt, arg| 
-  case opt 
-    when '--help' 
-      puts <<-EOF
-Help::SOS-PKI
---help
-  Prints this help.
---create-root-ca
-  Creates all files required for the root ca
---create-signing-ca
-  Creates all files required for the signing ca
---create-cert
-  Creates a certificate what usually the server should do
-EOF
-    when '--create-root-ca'
-      init_structure('root-ca')
-      root_ca_private_pass = input('Root-CA ')
-      create_rootca_key_and_csr(root_ca_private_pass)
-      create_rootca_cert(root_ca_private_pass)
-    when '--create-signing-ca'
-      init_structure('signing-ca')
-      signing_ca_private_pass = input('Signing-CA ')
-      create_signing_key_and_csr(signing_ca_private_pass)
-      create_signingca_cert
-    when '--create-cert'
-      create_server_key_and_csr
-      create_server_cert
-    when '--clean-all'
-      init_structure('clean')
+global = OptionParser.new do |opts|
+  opts.banner = "Usage: admin.rb command [[option] | subcommand [option]]"
+end
+subcommands = { 
+  'create-cert' => OptionParser.new do |opts|
+    opts.banner = "Usage: create-cert [option]"
+    opts.on("") do |v|
+      options[:command] = 'create-cert'
+    end
+    opts.on("-n certname", "--name certname", "name of cert") do |v|
+      options[:name] = v
+    end
+    opts.on("-s sanstring", "--san sanstring", "san of cert") do |v|
+      options[:san] = v
+    end
+    opts.on("-p password", "--password password", "password of signing ca") do |v|
+      options[:password] = v
+    end
+  end,
+  'create-root-ca' => OptionParser.new do |opts|
+    opts.banner = "Usage: create-root-ca"
+    opts.on("") do |v|
+      options[:command] = 'create-root-ca'
+    end
+  end,
+  'create-signing-ca' => OptionParser.new do |opts|
+    opts.banner = "Usage: create-signing-ca"
+    opts.on("") do |v|
+      options[:command] = 'create-signing-ca'
+    end
+  end,
+  'clean-all' => OptionParser.new do |opts|
+    opts.banner = "Usage: clean all"
+    opts.on("") do |v|
+      options[:command] = 'clean-all'
+    end
   end
+}
+
+global.order!
+subcommands[ARGV.shift].order!
+
+# ---- Command execution ----
+
+case options[:command]
+  when 'create-cert'
+    create_server_key_and_csr(options[:san], options[:name])
+    create_server_cert(options[:name], options[:password])
+  when 'create-root-ca'
+    init_structure('root-ca')
+    root_ca_private_pass = input('Root-CA ')
+    create_rootca_key_and_csr(root_ca_private_pass)
+    create_rootca_cert(root_ca_private_pass)
+  when 'create-signing-ca'
+    init_structure('signing-ca')
+    signing_ca_private_pass = input('Signing-CA ')
+    create_signing_key_and_csr(signing_ca_private_pass)
+    create_signingca_cert
+  when 'clean-all'
+    init_structure('clean')
 end

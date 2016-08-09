@@ -7,4 +7,4 @@ docker	run \
 	-v "$PWD"/bundle:/usr/local/bundle \
 	-w /usr/src/app \
 	sos-pki-dev \
-	ruby admin.rb --create-root-ca
+	ruby admin.rb create-root-ca

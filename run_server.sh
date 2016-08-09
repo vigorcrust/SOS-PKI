@@ -1,4 +1,5 @@
 #!/bin/sh
+export TERM=xterm
 docker	run \
 	-it \
 	--rm \
@@ -8,4 +9,5 @@ docker	run \
 	-v "$PWD"/bundle:/usr/local/bundle \
 	-w /usr/src/app \
 	sos-pki-dev \
-	rerun 'ruby server.rb'
+	ruby server.rb
+#	rerun 'ruby server.rb'

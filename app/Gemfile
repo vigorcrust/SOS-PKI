@@ -3,6 +3,8 @@ source 'https://rubygems.org'
 gem 'sinatra'
 gem 'thin'
 gem 'highline'
+gem 'sinatra-swagger-exposer'
+gem 'sinatra-cross_origin'
 
 # for development of sos-pki, remove for delivery
 gem 'rerun'

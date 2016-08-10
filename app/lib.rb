@@ -28,13 +28,13 @@ def init_structure(typeof_structure)
 end
 
 def create_rootca_key_and_csr(passout)
-  system("openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key -passout pass:#{passout}")
+  system("openssl req -new -config config/root-ca.conf -out ca/root-ca.csr -keyout ca/root-ca/private/root-ca.key -passout pass:\"#{passout}\"")
 end
 def create_rootca_cert(passin)
-  system("openssl ca -selfsign -batch -config config/root-ca.conf -in ca/root-ca.csr -out ca/root-ca.crt -extensions root_ca_ext -passin pass:#{passin}")
+  system("openssl ca -selfsign -batch -config config/root-ca.conf -in ca/root-ca.csr -out ca/root-ca.crt -extensions root_ca_ext -passin pass:\"#{passin}\"")
 end
 def create_signing_key_and_csr(passout)
-  system("openssl req -new -config config/signing-ca.conf -out ca/signing-ca.csr -keyout ca/signing-ca/private/signing-ca.key -passout pass:#{passout}")
+  system("openssl req -new -config config/signing-ca.conf -out ca/signing-ca.csr -keyout ca/signing-ca/private/signing-ca.key -passout pass:\"#{passout}\"")
 end
 def create_signingca_cert
   system("openssl ca -batch -config config/root-ca.conf -in ca/signing-ca.csr -out ca/signing-ca.crt -extensions signing_ca_ext")
@@ -51,7 +51,7 @@ def create_server_key_and_csr(san = 'simple.org', name = 'simple', password = ''
   system("#{san_string} COMMON_NAME=#{name} openssl req -new -config config/server.conf -out certs/#{name}.csr -keyout certs/#{name}.key")
 end
 def create_server_cert(name = 'simple', password = '')
-  system("openssl ca -batch -config config/signing-ca.conf -in certs/#{name}.csr -out certs/#{name}.crt -extensions server_ext -passin pass:#{password}")
+  system("openssl ca -batch -config config/signing-ca.conf -in certs/#{name}.csr -out certs/#{name}.crt -extensions server_ext -passin pass:\"#{password}\"")
 end
 
 # ---- Helpers ----
